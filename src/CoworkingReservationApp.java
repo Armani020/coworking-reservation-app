@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
@@ -9,6 +12,7 @@ public class CoworkingReservationApp {
     private static final Scanner scanner = new Scanner(System.in);
     private static final List<Coworking> coworkingSpaces = new ArrayList<>();
     private static final List<Reservation> reservations = new ArrayList<>();
+    private static final String COWORKING_FILE = "src/coworkings.txt";
 
     private static User currentUser = null;
     private static int nextReservationId = 1;
@@ -21,10 +25,33 @@ public class CoworkingReservationApp {
     }
 
     private static void initCoworkingSpaces() {
-        coworkingSpaces.add(new Coworking(1, "Open Space", "open space", 20, true));
-        coworkingSpaces.add(new Coworking(2, "Private Office", "private", 50, true));
-        coworkingSpaces.add(new Coworking(3, "Meeting Room", "room", 35, true));
-        coworkingSpaces.add(new Coworking(4, "Conference Room", "room", 75, true));
+        loadCoworkingSpacesFromFile();
+    }
+
+    private static void loadCoworkingSpacesFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(COWORKING_FILE))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                String[] strings = line.split(",");
+
+                if (strings.length < 5) {
+                    throw new InvalidFileInputException("Invalid line in file: " + line);
+                }
+
+                int id = Integer.parseInt(strings[0]);
+                String name = strings[1];
+                String type = strings[2];
+                int price = Integer.parseInt(strings[3]);
+                boolean available = Boolean.parseBoolean(strings[4]);
+
+                coworkingSpaces.add(new Coworking(id, name, type, price, available));
+            }
+        } catch (InvalidFileInputException e) {
+            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            System.out.println("Error reading coworking spaces file: " + e.getMessage());
+        }
     }
 
     private static void showWelcomeMessage() {
