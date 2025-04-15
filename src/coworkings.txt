@@ -1,0 +1,5 @@
+1,Open Space,open space,20,true
+2,Private Office,private,50,true
+3,Meeting Room,room,35,true
+4,Conference Room,room,75,true
+5,fdgdfg
