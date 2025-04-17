@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class CoworkingReservationApp {
@@ -350,6 +351,15 @@ public class CoworkingReservationApp {
                     reservation.getStartTime(),
                     reservation.getEndTime());
         }
+        myReservations
+                .stream()
+                .map(reservation -> String.format("%d\t%s\t%s\t%s\t%s",
+                        reservation.getId(),
+                        reservation.getCoworkingSpace().getName(),
+                        reservation.getDate(),
+                        reservation.getStartTime(),
+                        reservation.getEndTime()))
+                .forEach(System.out::println);
     }
 
     private static void cancelReservation() {
@@ -379,20 +389,17 @@ public class CoworkingReservationApp {
         System.out.print("Enter the ID of the reservation you want to cancel: ");
         int reservationId = getIntInput();
 
-        boolean canceled = false;
-        for (int i = 0; i < reservations.size(); i++) {
-            Reservation reservation = reservations.get(i);
-            if (reservation.getId() == reservationId && reservation.getUserName().equals(currentUser.getUsername())) {
-                reservations.remove(i);
-                canceled = true;
-                System.out.println("Reservation canceled successfully!");
-                break;
-            }
-        }
+        Optional<Reservation> reservationToCancel = reservations.stream()
+                .filter(reservation -> reservation.getId() == reservationId && reservation.getUserName().equals(currentUser.getUsername()))
+                .findFirst();
 
-        if (!canceled) {
-            System.out.println("Invalid reservation ID or you don't have permission to cancel this reservation!");
-        }
+        reservationToCancel.ifPresentOrElse(
+                reservation -> {
+                    reservations.remove(reservation);
+                    System.out.println("Reservation canceled successfully!");
+                },
+                () -> System.out.println("Invalid reservation ID or you don't have permission to cancel this reservation!")
+        );
     }
 
     private static void showAllCoworkingSpaces() {
@@ -404,14 +411,14 @@ public class CoworkingReservationApp {
         System.out.println("ID\tName\t\tType\t\tPrice/Hour\tAvailability");
         System.out.println("----------------------------------------------------------------------");
 
-        for (Coworking coworking : coworkingSpaces) {
-            System.out.printf("%d\t%-15s\t%-10s\t%s$\t\t%s\n",
-                    coworking.getId(),
-                    coworking.getName(),
-                    coworking.getType(),
-                    coworking.getPrice(),
-                    coworking.isAvailable() ? "Available" : "Unavailable");
-        }
+        coworkingSpaces.stream()
+                .map(coworking -> String.format("%d\t%-15s\t%-10s\t%s$\t\t%s",
+                        coworking.getId(),
+                        coworking.getName(),
+                        coworking.getType(),
+                        coworking.getPrice(),
+                        coworking.isAvailable() ? "Available" : "Unavailable"))
+                .forEach(System.out::println);
     }
 
     private static int getIntInput() {
